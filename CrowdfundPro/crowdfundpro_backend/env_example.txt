@@ -1,0 +1,21 @@
+# Django Settings
+SECRET_KEY=your_secret_key_here
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Database (PostgreSQL)
+DATABASE_URL=postgresql://postgres:123456@localhost:5432/crowdfundpro
+
+# CORS Settings
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+
+# Stripe Settings
+STRIPE_SECRET_KEY=sk_test_51RP2Z3Qq6u5vbVXcFsku1WvYUYQ9SppUDQ00s8Wlq7X3POtl8NKiU3fG87TZiMPcIvkG9DMXmtGVlyEn33BFB1am00tbi3YVKB
+STRIPE_PUBLISHABLE_KEY=pk_test_51RP2Z3Qq6u5vbVXcyZvDDP5ZxOmtGpPnB1qPGQ20UQKOmjhrY4DoNKi5E421PAjKL8dWjwHyOMpDsiFzI7GJuKWF00JCfl6HLI
+
+# Email Settings (optional)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your_email@gmail.com
+EMAIL_HOST_PASSWORD=your_app_password 
