@@ -31,7 +31,10 @@ class UserRegistrationView(generics.CreateAPIView):
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            logger.error(f"Erreur de validation lors de l'inscription : {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
         user = serializer.save()
         
         # Generate JWT tokens
@@ -52,6 +55,20 @@ class UserProfileView(APIView):
         try:
             serializer = UserSerializer(request.user)
             return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def patch(self, request):
+        try:
+            serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response(
                 {'error': str(e)},
@@ -138,4 +155,37 @@ class UserPublicView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         """Filtrer pour ne retourner que les porteurs de projet"""
-        return User.objects.filter(role='PORTEUR') 
+        return User.objects.filter(role='PORTEUR')
+
+
+@api_view(['DELETE'])
+@permission_classes([permissions.IsAuthenticated])
+def delete_user(request, pk):
+    """
+    Vue pour supprimer un utilisateur (admin seulement)
+    """
+    if not request.user.is_superuser:
+        return Response(
+            {'error': 'Permission non accordée'}, 
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    try:
+        user = User.objects.get(pk=pk)
+        # Empêcher l'admin de se supprimer lui-même
+        if user == request.user:
+            return Response(
+                {'error': 'Vous ne pouvez pas supprimer votre propre compte'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        user.delete()
+        return Response(
+            {'message': 'Utilisateur supprimé avec succès'}, 
+            status=status.HTTP_204_NO_CONTENT
+        )
+    except User.DoesNotExist:
+        return Response(
+            {'error': 'Utilisateur non trouvé'}, 
+            status=status.HTTP_404_NOT_FOUND
+        ) 

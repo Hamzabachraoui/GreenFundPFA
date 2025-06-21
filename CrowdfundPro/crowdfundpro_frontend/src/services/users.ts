@@ -16,7 +16,12 @@ export const userService = {
 
   // Get all users (admin only)
   async getUsers(): Promise<User[]> {
-    const response = await api.get('/users/');
+    const response = await api.get('/users/list/');
     return response.data;
+  },
+
+  // Delete user (admin only)
+  async deleteUser(id: number): Promise<void> {
+    await api.delete(`/users/${id}/`);
   }
 }; 

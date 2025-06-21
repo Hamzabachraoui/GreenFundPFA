@@ -27,17 +27,43 @@ class IsInvestisseurOrReadOnly(permissions.BasePermission):
         return request.user.is_authenticated and request.user.role == 'INVESTISSEUR'
 
 
-class InvestmentCreateView(generics.CreateAPIView):
+class InvestmentCreateView(generics.CreateAPIView, generics.ListAPIView):
     """
-    Vue pour créer un investissement
+    Vue pour créer et lister les investissements
     """
     serializer_class = InvestmentCreateSerializer
     permission_classes = [IsInvestisseurOrReadOnly]
     
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return InvestmentListSerializer
+        return InvestmentCreateSerializer
+    
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return Investment.objects.all()
+        elif user.role == 'INVESTISSEUR':
+            return Investment.objects.filter(investisseur=user)
+        elif user.role == 'PORTEUR':
+            # Porteurs can see investments in their projects
+            return Investment.objects.filter(projet__porteur=user)
+        return Investment.objects.none()
+    
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        
+        # Créer l'investissement
         investment = serializer.save()
+        
+        # Marquer l'investissement comme réussi (pour simplifier sans paiement)
+        investment.statut_paiement = 'REUSSI'
+        investment.save()
+        
+        # Mettre à jour le montant actuel du projet et son statut
+        projet = investment.projet
+        projet.update_montant_actuel()
         
         return Response({
             'message': 'Investissement créé avec succès',
@@ -198,34 +224,48 @@ def investment_dashboard(request):
     
     if user.role == 'INVESTISSEUR':
         investments = Investment.objects.filter(investisseur=user)
-        total_invested = investments.filter(statut_paiement='REUSSI').aggregate(
-            total=models.Sum('montant')
-        )['total'] or Decimal('0.00')
         
+        # Calculer les statistiques
+        total_investments = investments.count()
         successful_investments = investments.filter(statut_paiement='REUSSI').count()
-        pending_investments = investments.filter(statut_paiement='EN_ATTENTE').count()
         failed_investments = investments.filter(statut_paiement='ECHOUE').count()
+        pending_investments = investments.filter(statut_paiement='EN_ATTENTE').count()
+        
+        total_amount = sum(inv.montant for inv in investments.filter(statut_paiement='REUSSI'))
+        avg_amount = total_amount / successful_investments if successful_investments > 0 else 0
+        
+        recent_investments = investments.order_by('-date_investissement')[:5]
         
         return Response({
-            'total_invested': total_invested,
-            'successful_investments': successful_investments,
-            'pending_investments': pending_investments,
-            'failed_investments': failed_investments,
-            'investments': InvestmentListSerializer(investments, many=True).data
+            'stats': {
+                'total': total_investments,
+                'reussi': successful_investments,
+                'echoue': failed_investments,
+                'en_attente': pending_investments,
+                'montant_total': float(total_amount),
+                'montant_moyen': float(avg_amount)
+            },
+            'recent_investments': InvestmentListSerializer(recent_investments, many=True).data
         })
     
     elif user.role == 'PORTEUR':
-        from django.db.models import Sum
+        # Pour les porteurs, montrer les investissements dans leurs projets
         investments = Investment.objects.filter(projet__porteur=user)
-        total_received = investments.filter(statut_paiement='REUSSI').aggregate(
-            total=Sum('montant')
-        )['total'] or Decimal('0.00')
+        
+        total_investments = investments.count()
+        successful_investments = investments.filter(statut_paiement='REUSSI').count()
+        total_amount = sum(inv.montant for inv in investments.filter(statut_paiement='REUSSI'))
+        
+        recent_investments = investments.order_by('-date_investissement')[:5]
         
         return Response({
-            'total_received': total_received,
-            'total_investments': investments.count(),
-            'successful_investments': investments.filter(statut_paiement='REUSSI').count(),
-            'investments': InvestmentListSerializer(investments, many=True).data
+            'stats': {
+                'total': total_investments,
+                'reussi': successful_investments,
+                'montant_total': float(total_amount)
+            },
+            'recent_investments': InvestmentListSerializer(recent_investments, many=True).data
         })
     
-    return Response({'error': 'Type d\'utilisateur non supporté'}, status=status.HTTP_400_BAD_REQUEST) 
+    else:
+        return Response({'error': 'Accès non autorisé'}, status=status.HTTP_403_FORBIDDEN) 

@@ -21,7 +21,7 @@ export default function HomePage() {
         const response = await projectsService.getProjects({
           ordering: '-date_creation',
         });
-        setProjects(response.results.slice(0, 6)); // Show only first 6 projects
+        setProjects(response.results.slice(0, 3)); // Show only first 3 projects
       } catch (error) {
         console.error('Error fetching projects:', error);
       } finally {
@@ -107,7 +107,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-primary-600">
+      <section className="py-16 bg-gradient-to-b from-sky-700 to-green-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white sm:text-4xl mb-4">
             Prêt à commencer ?
@@ -120,7 +120,7 @@ export default function HomePage() {
             <div className="space-x-4">
               {user?.role === 'PORTEUR' ? (
                 <Link
-                  href="/dashboard/projects/create"
+                  href="/dashboard/porteur/create"
                   className="btn bg-white text-primary-600 hover:bg-gray-100 btn-lg"
                 >
                   Créer un projet

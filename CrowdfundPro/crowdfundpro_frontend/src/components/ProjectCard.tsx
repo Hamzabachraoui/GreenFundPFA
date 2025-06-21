@@ -40,6 +40,14 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           {project.description}
         </p>
         
+        {/* Localisation */}
+        {project.adresse && (
+          <div className="mb-2 flex items-center text-xs text-gray-500">
+            <span className="mr-1">📍</span>
+            <span className="line-clamp-1">{project.adresse}</span>
+          </div>
+        )}
+        
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Objectif:</span>
@@ -64,6 +72,28 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             </div>
           </div>
         </div>
+        
+        {/* Documents disponibles */}
+        {(project.business_plan || project.plan_juridique) && (
+          <div className="mt-2 pt-2 border-t border-gray-100">
+            <div className="flex items-center text-xs text-gray-500">
+              <span className="mr-1">📄</span>
+              <span>Documents:</span>
+            </div>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {project.business_plan && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                  📊 Business Plan
+                </span>
+              )}
+              {project.plan_juridique && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
+                  ⚖️ Plan Juridique
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

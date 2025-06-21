@@ -3,7 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Sum, Count, F, ExpressionWrapper, FloatField, Q
 from django.db.models.functions import TruncMonth
-from datetime import datetime, timedelta
+from django.utils import timezone
+from datetime import timedelta
 from decimal import Decimal
 from .models import Project
 from investments.models import Investment
@@ -38,7 +39,7 @@ def porteur_stats(request):
     ]
 
     # Statistiques mensuelles
-    six_months_ago = datetime.now() - timedelta(days=180)
+    six_months_ago = timezone.now() - timedelta(days=180)
     monthly_stats = projects.filter(
         date_creation__gte=six_months_ago
     ).annotate(
@@ -130,7 +131,7 @@ def investisseur_stats(request):
     ]
 
     # Historique des investissements
-    six_months_ago = datetime.now() - timedelta(days=180)
+    six_months_ago = timezone.now() - timedelta(days=180)
     investment_history = investments.filter(
         date_investissement__gte=six_months_ago
     ).annotate(

@@ -6,7 +6,12 @@ import { Project } from '../../../types';
 import { projectsService } from '../../../services/projects';
 import Layout from '../../../components/Layout';
 import LoadingSpinner from '../../../components/LoadingSpinner';
-import ProjectDetails from '../../../components/ProjectDetails';
+import dynamic from 'next/dynamic';
+
+const ProjectDetails = dynamic(() => import('../../../components/ProjectDetails'), {
+  ssr: false,
+  loading: () => <div className="flex justify-center items-center min-h-screen"><LoadingSpinner size="lg" /></div>
+});
 
 export default function ProjectPage() {
   const { id: projectId } = useParams();
@@ -18,7 +23,7 @@ export default function ProjectPage() {
     const loadProject = async () => {
       try {
         setLoading(true);
-        const projectData = await projectsService.getProject(projectId as string);
+        const projectData = await projectsService.getProject(parseInt(projectId as string));
         setProject(projectData);
       } catch (error) {
         console.error('Error fetching project:', error);

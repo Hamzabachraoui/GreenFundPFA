@@ -15,8 +15,8 @@ class InvestmentCreateSerializer(serializers.ModelSerializer):
     def validate_montant(self, value):
         if value <= 0:
             raise serializers.ValidationError("Le montant doit être supérieur à 0.")
-        if value < 10:  # Minimum investment
-            raise serializers.ValidationError("Le montant minimum d'investissement est de 10€.")
+        if value < 1:  # Minimum investment
+            raise serializers.ValidationError("Le montant minimum d'investissement est de 1 DH.")
         return value
     
     def validate_projet(self, value):
@@ -49,7 +49,8 @@ class InvestmentListSerializer(serializers.ModelSerializer):
     """
     projet = ProjectListSerializer(read_only=True)
     investisseur = UserProfileSerializer(read_only=True)
-    statut_paiement_display = serializers.CharField(source='get_statut_paiement_display', read_only=True)
+    statut = serializers.CharField(source='statut_paiement', read_only=True)
+    statut_display = serializers.CharField(source='get_statut_paiement_display', read_only=True)
     methode_paiement_display = serializers.CharField(source='get_methode_paiement_display', read_only=True)
     
     class Meta:
@@ -57,7 +58,7 @@ class InvestmentListSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'projet', 'investisseur', 'montant', 'date_investissement',
             'methode_paiement', 'methode_paiement_display', 'statut_paiement',
-            'statut_paiement_display'
+            'statut', 'statut_display'
         )
 
 
@@ -67,7 +68,8 @@ class InvestmentDetailSerializer(serializers.ModelSerializer):
     """
     projet = ProjectListSerializer(read_only=True)
     investisseur = UserProfileSerializer(read_only=True)
-    statut_paiement_display = serializers.CharField(source='get_statut_paiement_display', read_only=True)
+    statut = serializers.CharField(source='statut_paiement', read_only=True)
+    statut_display = serializers.CharField(source='get_statut_paiement_display', read_only=True)
     methode_paiement_display = serializers.CharField(source='get_methode_paiement_display', read_only=True)
     
     class Meta:
@@ -75,7 +77,7 @@ class InvestmentDetailSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'projet', 'investisseur', 'montant', 'date_investissement',
             'methode_paiement', 'methode_paiement_display', 'statut_paiement',
-            'statut_paiement_display', 'stripe_payment_intent_id'
+            'statut', 'statut_display', 'stripe_payment_intent_id'
         )
 
 

@@ -6,7 +6,13 @@ import { useAuth } from '../../../../context/AuthContext';
 import Link from 'next/link';
 import { projectsService } from '../../../../services/projects';
 import LoadingSpinner from '../../../../components/LoadingSpinner';
+import dynamic from 'next/dynamic';
 import { ProjectCreateData } from '../../../../types';
+
+const LocationPicker = dynamic(() => import('../../../../components/LocationPicker'), {
+  ssr: false,
+  loading: () => <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">Chargement de la carte...</div>
+});
 
 export default function CreateProjectPage() {
   const router = useRouter();
@@ -18,7 +24,14 @@ export default function CreateProjectPage() {
     description: '',
     montant_cible: '',
     date_limite: '',
-    image: null as File | null
+    image: null as File | null,
+    // Nouveaux champs pour la localisation
+    adresse: '',
+    latitude: '',
+    longitude: '',
+    // Nouveaux champs pour les documents
+    business_plan: null as File | null,
+    plan_juridique: null as File | null
   });
 
   // Vérifier si l'utilisateur est un porteur
@@ -57,6 +70,23 @@ export default function CreateProjectPage() {
         projectData.image = formData.image;
       }
 
+      // Ajouter les champs de localisation
+      if (formData.latitude && formData.longitude) {
+        projectData.latitude = parseFloat(formData.latitude);
+        projectData.longitude = parseFloat(formData.longitude);
+      }
+      if (formData.adresse) {
+        projectData.adresse = formData.adresse;
+      }
+
+      // Ajouter les documents
+      if (formData.business_plan) {
+        projectData.business_plan = formData.business_plan;
+      }
+      if (formData.plan_juridique) {
+        projectData.plan_juridique = formData.plan_juridique;
+      }
+
       await projectsService.createProject(projectData);
       router.push('/dashboard/porteur');
     } catch (err: any) {
@@ -78,9 +108,17 @@ export default function CreateProjectPage() {
     if (e.target.files && e.target.files[0]) {
       setFormData(prev => ({
         ...prev,
-        image: e.target.files![0]
+        [e.target.name]: e.target.files![0]
       }));
     }
+  };
+
+  const handleLocationChange = (lat: number, lng: number) => {
+    setFormData(prev => ({
+      ...prev,
+      latitude: lat.toString(),
+      longitude: lng.toString()
+    }));
   };
 
   return (
@@ -205,11 +243,94 @@ export default function CreateProjectPage() {
           </div>
         </div>
 
-        {/* Image */}
+        {/* Localisation */}
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-gray-900 flex items-center">
             <span className="bg-gradient-to-r from-green-600 to-blue-600 w-8 h-8 rounded-lg flex items-center justify-center text-white mr-3">2</span>
-            Image du Projet
+            📍 Localisation du Projet
+          </h3>
+          
+          <div className="space-y-6">
+            <div className="group">
+              <label htmlFor="adresse" className="block text-sm font-medium text-gray-700 mb-1 group-hover:text-green-600 transition-colors">
+                Adresse complète
+              </label>
+              <input
+                type="text"
+                id="adresse"
+                name="adresse"
+                value={formData.adresse}
+                onChange={handleChange}
+                className="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 hover:border-green-400"
+                placeholder="Ex: 123 Rue Mohammed V, Casablanca, Maroc"
+              />
+              <p className="mt-2 text-sm text-gray-500">
+                🌍 L'adresse complète de votre projet
+              </p>
+            </div>
+
+            {/* Sélecteur de carte */}
+            <div className="group">
+              <label className="block text-sm font-medium text-gray-700 mb-1 group-hover:text-green-600 transition-colors">
+                Sélectionner la position sur la carte
+              </label>
+              <LocationPicker
+                latitude={formData.latitude ? parseFloat(formData.latitude) : null}
+                longitude={formData.longitude ? parseFloat(formData.longitude) : null}
+                onLocationChange={handleLocationChange}
+              />
+              <p className="mt-2 text-sm text-gray-500">
+                🗺️ Cliquez sur la carte pour placer le marqueur ou déplacez-le
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="group">
+                <label htmlFor="latitude" className="block text-sm font-medium text-gray-700 mb-1 group-hover:text-green-600 transition-colors">
+                  Latitude
+                </label>
+                <input
+                  type="number"
+                  id="latitude"
+                  name="latitude"
+                  step="any"
+                  value={formData.latitude}
+                  onChange={handleChange}
+                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 hover:border-green-400"
+                  placeholder="Ex: 33.5731"
+                />
+                <p className="mt-2 text-sm text-gray-500">
+                  📍 Coordonnée GPS (se remplit automatiquement)
+                </p>
+              </div>
+
+              <div className="group">
+                <label htmlFor="longitude" className="block text-sm font-medium text-gray-700 mb-1 group-hover:text-green-600 transition-colors">
+                  Longitude
+                </label>
+                <input
+                  type="number"
+                  id="longitude"
+                  name="longitude"
+                  step="any"
+                  value={formData.longitude}
+                  onChange={handleChange}
+                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 hover:border-green-400"
+                  placeholder="Ex: -7.5898"
+                />
+                <p className="mt-2 text-sm text-gray-500">
+                  📍 Coordonnée GPS (se remplit automatiquement)
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Image */}
+        <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+            <span className="bg-gradient-to-r from-green-600 to-blue-600 w-8 h-8 rounded-lg flex items-center justify-center text-white mr-3">3</span>
+            🖼️ Image du Projet
           </h3>
           
           <div className="group">
@@ -239,6 +360,74 @@ export default function CreateProjectPage() {
                 <p className="text-xs text-gray-500">
                   PNG, JPG jusqu'à 5MB
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Documents */}
+        <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+            <span className="bg-gradient-to-r from-green-600 to-blue-600 w-8 h-8 rounded-lg flex items-center justify-center text-white mr-3">4</span>
+            📄 Documents du Projet
+          </h3>
+          
+          <div className="grid gap-6">
+            <div className="group">
+              <label htmlFor="business_plan" className="block text-sm font-medium text-gray-700 mb-1 group-hover:text-green-600 transition-colors">
+                Business Plan
+              </label>
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-green-400 transition-colors">
+                <div className="space-y-1 text-center">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <div className="flex text-sm text-gray-600">
+                    <label htmlFor="business_plan" className="relative cursor-pointer rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500">
+                      <span>Télécharger le business plan</span>
+                      <input
+                        type="file"
+                        id="business_plan"
+                        name="business_plan"
+                        accept=".pdf,.doc,.docx"
+                        onChange={handleFileChange}
+                        className="sr-only"
+                      />
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    PDF, DOC, DOCX jusqu'à 10MB
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="group">
+              <label htmlFor="plan_juridique" className="block text-sm font-medium text-gray-700 mb-1 group-hover:text-green-600 transition-colors">
+                Plan Juridique et Réglementaire
+              </label>
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-green-400 transition-colors">
+                <div className="space-y-1 text-center">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <div className="flex text-sm text-gray-600">
+                    <label htmlFor="plan_juridique" className="relative cursor-pointer rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500">
+                      <span>Télécharger le plan juridique</span>
+                      <input
+                        type="file"
+                        id="plan_juridique"
+                        name="plan_juridique"
+                        accept=".pdf,.doc,.docx"
+                        onChange={handleFileChange}
+                        className="sr-only"
+                      />
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    PDF, DOC, DOCX jusqu'à 10MB
+                  </p>
+                </div>
               </div>
             </div>
           </div>

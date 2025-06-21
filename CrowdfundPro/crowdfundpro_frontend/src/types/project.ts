@@ -12,7 +12,7 @@ export interface Project {
   categorie: string;
   date_creation: string;
   date_limite: string;
-  statut: 'EN_COURS' | 'FINANCE' | 'ECHOUE';
+  statut: 'EN_ATTENTE_VALIDATION' | 'EN_COURS' | 'FINANCE' | 'ECHOUE';
   statut_display?: string;
   porteur: {
     id: number;
@@ -21,4 +21,12 @@ export interface Project {
     email: string;
     date_inscription: string;
   };
+  // Nouveaux champs pour la localisation
+  latitude?: number;
+  longitude?: number;
+  adresse?: string;
+  a_localisation?: boolean;
+  // Nouveaux champs pour les documents
+  business_plan?: string;
+  plan_juridique?: string;
 } 

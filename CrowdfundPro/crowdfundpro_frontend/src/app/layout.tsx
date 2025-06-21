@@ -6,8 +6,11 @@ import { Toaster } from 'react-hot-toast';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'CrowdfundPro',
-  description: 'Plateforme de financement participatif',
+  title: 'GreenFund',
+  description: 'GreenFund - Plateforme de financement participatif pour projets verts',
+  icons: {
+    icon: '/energie renouvelable.avif',
+  },
 };
 
 export default function RootLayout({

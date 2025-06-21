@@ -17,7 +17,7 @@ export const investmentsService = {
 
   // Get all investments (filtered by user role)
   async getInvestments(): Promise<Investment[]> {
-    const response = await api.get('/investments/');
+    const response = await api.get('/investments/list/');
     return response.data;
   },
 
@@ -40,7 +40,7 @@ export const investmentsService = {
 
   // Get user investments
   async getUserInvestments(): Promise<Investment[]> {
-    const response = await api.get('/investments/');
+    const response = await api.get('/investments/list/');
     return response.data;
   },
 

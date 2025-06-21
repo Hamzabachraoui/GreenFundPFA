@@ -43,9 +43,8 @@ export interface Project {
   montant_actuel: number;
   date_creation: string;
   date_limite: string;
-  statut: 'EN_COURS' | 'FINANCE' | 'ECHOUE';
+  statut: 'EN_ATTENTE_VALIDATION' | 'EN_COURS' | 'FINANCE' | 'ECHOUE';
   statut_display: string;
-  categorie: string;
   image: string;
   porteur: User;
   nombre_investisseurs: number;
@@ -54,6 +53,12 @@ export interface Project {
   date_debut: string;
   date_fin: string;
   investissements?: Investment[];
+  latitude?: number;
+  longitude?: number;
+  adresse?: string;
+  a_localisation?: boolean;
+  business_plan?: string;
+  plan_juridique?: string;
 }
 
 export interface ProjectCreateData {
@@ -62,6 +67,11 @@ export interface ProjectCreateData {
   objectif: number;
   date_limite: string;
   image?: File;
+  latitude?: number;
+  longitude?: number;
+  adresse?: string;
+  business_plan?: File;
+  plan_juridique?: File;
 }
 
 export interface ProjectStats {

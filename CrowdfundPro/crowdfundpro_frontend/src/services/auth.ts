@@ -9,6 +9,14 @@ interface AuthTokens {
 const TOKEN_KEY = 'auth_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 
+const requestPasswordReset = (email: string): Promise<void> => {
+  return api.post('/users/password_reset/', { email });
+};
+
+const confirmPasswordReset = (password: string, token: string): Promise<void> => {
+  return api.post('/users/password_reset/confirm/', { password, token });
+};
+
 export const authService = {
   // Login user
   async login(credentials: LoginData): Promise<AuthResponse> {
@@ -76,7 +84,7 @@ export const authService = {
       throw new Error('No refresh token found');
     }
 
-    const response = await api.post('/users/token/refresh/', { refresh });
+    const response = await api.post('/token/refresh/', { refresh });
     const { access } = response.data;
 
     // Store new access token
@@ -116,5 +124,14 @@ export const authService = {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     delete api.defaults.headers.common['Authorization'];
-  }
+  },
+
+  // Password Reset
+  async requestPasswordReset(email: string): Promise<void> {
+    await api.post('/users/password_reset/', { email });
+  },
+
+  async confirmPasswordReset(password: string, token: string): Promise<void> {
+    await api.post('/users/password_reset/confirm/', { password, token });
+  },
 }; 

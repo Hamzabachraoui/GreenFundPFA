@@ -31,12 +31,31 @@ export const projectsService = {
     formData.append('objectif', data.objectif.toString());
     formData.append('date_limite', data.date_limite);
     
+    // Append location fields if provided
+    if (data.latitude !== undefined) {
+      formData.append('latitude', data.latitude.toString());
+    }
+    if (data.longitude !== undefined) {
+      formData.append('longitude', data.longitude.toString());
+    }
+    if (data.adresse) {
+      formData.append('adresse', data.adresse);
+    }
+    
     // Append image if exists
     if (data.image) {
       formData.append('image', data.image);
     }
+    
+    // Append documents if provided
+    if (data.business_plan) {
+      formData.append('business_plan', data.business_plan);
+    }
+    if (data.plan_juridique) {
+      formData.append('plan_juridique', data.plan_juridique);
+    }
 
-    const response = await api.post('/api/projects/', formData, {
+    const response = await api.post('/projects/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -46,13 +65,13 @@ export const projectsService = {
 
   // Update project
   async updateProject(id: number, data: Partial<Project>): Promise<Project> {
-    const response = await api.patch(`/api/projects/${id}/`, data);
+    const response = await api.patch(`/projects/${id}/`, data);
     return response.data;
   },
 
   // Delete project
   async deleteProject(id: number): Promise<void> {
-    await api.delete(`/api/projects/${id}/`);
+    await api.delete(`/projects/${id}/`);
   },
 
   // Get user's projects
@@ -71,19 +90,25 @@ export const projectsService = {
 
   // Get project statistics
   async getProjectStats(id: number): Promise<ProjectStats> {
-    const response = await api.get(`/api/projects/${id}/stats/`);
+    const response = await api.get(`/projects/${id}/stats/`);
     return response.data;
   },
 
   // Update project status (admin only)
   async updateProjectStatus(id: number): Promise<Project> {
-    const response = await api.post(`/api/projects/${id}/update_status/`);
+    const response = await api.post(`/projects/${id}/update_status/`);
+    return response.data;
+  },
+
+  // Validate project (admin only)
+  async validateProject(id: number): Promise<Project> {
+    const response = await api.post(`/projects/${id}/validate/`);
     return response.data;
   },
 
   // Get projects for a specific porteur
   async getPorteurProjects(porteurId: string): Promise<ProjectsResponse> {
-    const response = await api.get(`/api/projects/?porteur=${porteurId}`);
+    const response = await api.get(`/projects/?porteur=${porteurId}`);
     return response.data;
   }
 }; 
